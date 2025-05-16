@@ -1,0 +1,13 @@
+{
+  "name": "chatweb2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd server && npm run build && cd .. && cd client && npm run build && cd ..",
+    "start": "node app/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "outDir": "../app",
+    "lib": [
+      "ESNext"
+    ],
+    "esModuleInterop": true,
+    "noEmitOnError": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitReturns": true,
+    "resolveJsonModule": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+  },
+  "include": [
+    "src/**/*",
+    "server.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

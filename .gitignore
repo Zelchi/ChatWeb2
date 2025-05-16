@@ -1,0 +1,352 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log
+app
+
+# Build output
+dist/
+build/
+out/
+coverage/
+.tmp/
+.temp/
+.cache/
+.next/
+.nuxt/
+.svelte-kit/
+.sapper/
+.snowpack/
+.vite/
+.esbuild-cache/
+.storybook-static/
+public/build/
+public/dist/
+
+# System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.temp
+*.log
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+*.komodoproject
+*.tmproj
+*.tmTheme
+*.sublime-*
+*.vscode-*
+
+# OS generated files
+*.orig
+*.rej
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Test output
+coverage/
+test-results/
+junit.xml
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Ruby
+*.gem
+*.rbc
+
+# PHP
+/vendor/
+composer.lock
+
+# Go
+bin/
+*.exe
+*.test
+
+# C/C++
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.out
+
+# Rust
+/target/
+Cargo.lock
+
+# Logs
+logs/
+*.log
+
+# Misc
+*.pid
+*.seed
+*.pid.lock
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.webp
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+*.gz
+*.bz2
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+*.sql
+*.bak
+
+# Others
+*.iml
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.temp
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Local .env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Firebase
+.firebase/
+.firebaserc
+
+# VSCode settings
+.history/
+.vscode/
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# Mac system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# npm
+.npm/
+
+# Yarn
+.yarn/
+.pnp.*
+.yarnrc.yml
+
+# SASS
+.sass-cache/
+
+# ESLint cache
+.eslintcache
+
+# Stylelint cache
+.stylelintcache
+
+# Parcel cache
+.cache/
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/results/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Storybook
+out/
+storybook-static/
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# Svelte
+.svelte-kit/
+build/
+
+# Vue
+/dist/
+node_modules/
+
+# React Native
+.expo/
+*.expo
+*.expo-shared
+
+# Expo
+.expo/
+.expo-shared/
+
+# Android Studio
+*.apk
+*.ap_
+*.aab
+*.cxx/
+*.gradle/
+*.idea/
+*.iml
+*.hprof
+*.DS_Store
+*.log
+*.keystore
+*.jks
+*.dex
+*.class
+*.jar
+*.war
+*.ear
+*.db
+*.db3
+*.sqlite
+*.sqlite3
+*.bak
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+
+# Xcode
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj
+*.xcuserdata
+*.xcuserdatad
+*.moved-aside
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcsettings
+*.xccheckout
+*.xcscheme
+*.xcscmblueprint
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/ServiceDefinitions.json
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/
+ios/Runner.xcuserdatad/
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+android/key.properties
+android/*.iml
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Cordova
+platforms/
+plugins/
+www/
+
+# Capacitor
+capacitor.config.ts
+capacitor.config.json
+capacitor.config.js
+web-build/
+
+# Miscellaneous
+*.pem
+*.crt
+*.key
+*.csr
+*.p12
+*.pfx
+*.asc
+*.gpg
+*.sig
+
+# Ignore everything in dotfolders except .gitignore
+.*/*
+!.gitignore
