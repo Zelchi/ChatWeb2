@@ -1,17 +1,33 @@
-import styled, { keyframes } from 'styled-components';
+import { useState } from 'react';
+import styled, { keyframes, css } from 'styled-components';
 
 export const slideUp = keyframes`
     from {
         opacity: 0;
+        top: calc(0% - 400px);
         transform: scale(0), translate(-50%, -50%);
     }
     to {
         opacity: 1;
+        top: 50%;
         transform: scale(1), translate(-50%, -50%);
     }
 `;
 
-const Container = styled.div`
+export const slideOut = keyframes`
+    from {
+        opacity: 1;
+        top: 50%;
+        transform: scale(1), translate(-50%, -50%);
+    }
+    to {
+        opacity: 0;
+        top: calc(100% + 400px);
+        transform: scale(0), translate(-50%, -50%);
+    }
+`;
+
+const Container = styled.div<{ animateOut: boolean }>`
     width: 400px;
     background-color: #2c2c2c;
     border-radius: 10px;
@@ -26,7 +42,10 @@ const Container = styled.div`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    animation: ${slideUp} 0.5s ease-in-out;
+    animation: ${({ animateOut }) =>
+        animateOut
+            ? css`${slideOut} 1s forwards`
+            : css`${slideUp} 1s ease-in-out`};
 `
 
 const Caixa = styled.div`
@@ -69,6 +88,7 @@ const Button = styled.button`
 `
 
 export const Nickname = ({ setLogin, setNick, nickname, socket }: any) => {
+    const [animateOut, setAnimateOut] = useState(false);
 
     const handleLogin = (e: any) => {
         if (e.key !== 'Enter' && e.type !== 'click') return
@@ -82,14 +102,16 @@ export const Nickname = ({ setLogin, setNick, nickname, socket }: any) => {
 
         socket.once('nicknameSuccess', (message: string) => {
             console.log(message);
-            setNick(nickname);
-            setLogin(true);
-            return;
+            setAnimateOut(true);
+            setTimeout(() => {
+                setNick(nickname);
+                setLogin(true);
+            }, 1000);
         });
     }
 
     return (
-        <Container>
+        <Container animateOut={animateOut}>
             <h1>Escolha seu nickname</h1>
             <Caixa>
                 <Input
