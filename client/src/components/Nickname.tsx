@@ -1,4 +1,15 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+
+export const slideUp = keyframes`
+    from {
+        opacity: 0;
+        transform: scale(0), translate(-50%, -50%);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1), translate(-50%, -50%);
+    }
+`;
 
 const Container = styled.div`
     width: 400px;
@@ -10,6 +21,12 @@ const Container = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 10px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ${slideUp} 0.5s ease-in-out;
 `
 
 const Caixa = styled.div`
@@ -53,16 +70,22 @@ const Button = styled.button`
 
 export const Nickname = ({ setLogin, setNick, nickname, socket }: any) => {
 
-    const nicknameRegex = /^[a-zA-Z]{3,15}$/;
     const handleLogin = (e: any) => {
         if (e.key !== 'Enter' && e.type !== 'click') return
-        if (!nickname) return
-        if (!nicknameRegex.test(nickname)) return
-        if (nickname.length < 3 || nickname.length > 15) return
-        setNick(nickname);
-        setLogin(true);
+
         socket.emit('nickname', nickname);
-        alert(`Bem-vindo(a) ${nickname}!`);
+
+        socket.once('nicknameError', (error: string) => {
+            console.log(error);
+            return;
+        });
+
+        socket.once('nicknameSuccess', (message: string) => {
+            console.log(message);
+            setNick(nickname);
+            setLogin(true);
+            return;
+        });
     }
 
     return (

@@ -1,13 +1,19 @@
-import styled from 'styled-components';
-import { useState } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useEffect, useState, useRef } from 'react';
+import { Sound } from './Sound';
+import join from '../../public/join.mp3'
+import send from '../../public/send.mp3'
+import exit from '../../public/exit.mp3'
 
-const UserCount = styled.div`
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    color: #fff;
-    font-size: 16px;
-    border-bottom: 2px solid #444;
+const slideUp = keyframes`
+    from {
+        opacity: 0;
+        transform: scale(0.95), translate(-50%, -50%);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1), translate(-50%, -50%);
+    }
 `;
 
 const ChatContainer = styled.div`
@@ -19,6 +25,21 @@ const ChatContainer = styled.div`
     flex-direction: column;
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ${slideUp} 0.5s ease-in-out;
+`;
+
+const UserCount = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    color: #fff;
+    font-size: 16px;
+    border-bottom: 2px solid #444;
 `;
 
 const Messages = styled.div`
@@ -76,27 +97,72 @@ const SendButton = styled.button`
 `;
 
 export const Chat = ({ socket }: any) => {
-    const [messages, setMessages] = useState<string[]>(["Batata", "Frita", "Com", "Queijo"]);
+    const [messages, setMessages] = useState<string[]>([]);
+    const [userCount, setUserCount] = useState(0);
+    const [input, setInput] = useState('');
 
-    socket.on('history', (messages: Array<string>) => {
-        messages.forEach((message: string) => {
-            setMessages((prevMessages) => [...prevMessages, message]);
-        });
-    });
+    const joinSoundRef = useRef<{ playSound: () => void }>(null);
+    const sendSoundRef = useRef<{ playSound: () => void }>(null);
+    const exitSoundRef = useRef<{ playSound: () => void }>(null);
 
-    const handleHistoryMessages = () => {
-        return messages.map((message: string) => (
-            <p key={message}>{message}</p>
-        ));
-    }
+    const handleUserCount = (count: number) => {
+        if (count > userCount) {
+            joinSoundRef.current?.playSound();
+        } else {
+            exitSoundRef.current?.playSound();
+        }
+        setUserCount(count);
+    };
+
+    const handleMessage = (message: string) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+        sendSoundRef.current?.playSound();
+    };
+
+    const handleHistory = (history: string[]) => {
+        setMessages(history);
+    };
+
+    useEffect(() => {
+        socket.emit('conected');
+    }, [socket]);
+
+    useEffect(() => {
+        socket.once('history', handleHistory);
+        socket.on('userCount', handleUserCount);
+        socket.on('message', handleMessage);
+
+        return () => {
+            socket.off('userCount', handleUserCount);
+            socket.off('message', handleMessage);
+            socket.off('history', handleHistory);
+        };
+    }, [socket]);
+
+    const sendMessage = () => {
+        if (input.trim() !== '') {
+            socket.emit('message', input);
+            setInput('');
+        }
+    };
 
     return (
         <ChatContainer>
-            <UserCount>Usuários online: 0</UserCount>
-            <Messages>{handleHistoryMessages()}</Messages>
+            <Sound ref={joinSoundRef} audio={join} />
+            <Sound ref={sendSoundRef} audio={send} />
+            <Sound ref={exitSoundRef} audio={exit} />
+            <UserCount>Online: {userCount}</UserCount>
+            <Messages>{messages.map((msg) => {
+                return <p key={msg}>{msg}</p>
+            })}</Messages>
             <InputContainer>
-                <MessageInput placeholder="Digite sua mensagem..." />
-                <SendButton>Enviar</SendButton>
+                <MessageInput
+                    placeholder="Digite sua mensagem..."
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={e => { e.key === 'Enter' && sendMessage() }}
+                />
+                <SendButton onClick={sendMessage}>Enviar</SendButton>
             </InputContainer>
         </ChatContainer>
     );
