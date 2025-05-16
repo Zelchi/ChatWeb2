@@ -1,6 +1,8 @@
 import express, { Application } from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
+import dotenv from 'dotenv';
+import path from 'path';
 
 class App {
 
@@ -9,6 +11,7 @@ class App {
     private io: Server;
 
     constructor() {
+        dotenv.config();
         this.app = express();
         this.http = http.createServer(this.app);
         this.io = new Server(this.http);
@@ -64,12 +67,16 @@ class App {
             });
         });
     }
-    
+
     setupRoutes() {
         this.app.use(express.static(__dirname));
 
         this.app.get('/', (req, res) => {
-            res.sendFile(__dirname + '/index.html');
+            const rootDir = path.resolve(__dirname, '../../');
+            const filePath = process.env.dev
+                ? path.join(rootDir, 'client', 'index.html')
+                : path.join(rootDir, 'index.html');
+            res.sendFile(filePath);
         });
     }
 }

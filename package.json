@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
     "build": "cd server && npm run build && cd .. && cd client && npm run build && cd ..",
     "start": "node app/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/node": "^22.15.18",
+    "concurrently": "^9.1.2"
+  }
 }
