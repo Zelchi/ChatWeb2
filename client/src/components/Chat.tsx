@@ -1,5 +1,5 @@
 import styled, { keyframes } from 'styled-components';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Sound } from './Sound';
 import join from '../../public/join.mp3'
 import send from '../../public/send.mp3'
@@ -100,27 +100,59 @@ export const Chat = ({ socket }: any) => {
     const [messages, setMessages] = useState<string[]>([]);
     const [userCount, setUserCount] = useState(0);
     const [input, setInput] = useState('');
+    const userCountRef = useRef(userCount);
 
     const joinSoundRef = useRef<{ playSound: () => void }>(null);
     const sendSoundRef = useRef<{ playSound: () => void }>(null);
     const exitSoundRef = useRef<{ playSound: () => void }>(null);
 
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+    const isScrollAtBottom = () => {
+        const el = messagesContainerRef.current;
+        if (!el) return true;
+        return Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 5;
+    };
+
+    const atBottomRef = useRef(true);
+
+    const scrollToBottom = () => {
+        const el = messagesContainerRef.current;
+        if (el) {
+            el.scrollTop = el.scrollHeight;
+        }
+    };
+
     const handleUserCount = (count: number) => {
-        if (count > userCount) {
+        if (count > userCountRef.current) {
             joinSoundRef.current?.playSound();
-        } else {
+        }
+        if (count < userCountRef.current) {
             exitSoundRef.current?.playSound();
         }
+
+        userCountRef.current = count;
         setUserCount(count);
     };
 
     const handleMessage = (message: string) => {
+        atBottomRef.current = isScrollAtBottom();
         setMessages((prevMessages) => [...prevMessages, message]);
         sendSoundRef.current?.playSound();
     };
 
+    useLayoutEffect(() => {
+        if (atBottomRef.current) {
+            scrollToBottom();
+        }
+    }, [messages]);
+
     const handleHistory = (history: string[]) => {
         setMessages(history);
+        setTimeout(() => {
+            scrollToBottom();
+        }, 0);
     };
 
     useEffect(() => {
@@ -152,9 +184,12 @@ export const Chat = ({ socket }: any) => {
             <Sound ref={sendSoundRef} audio={send} />
             <Sound ref={exitSoundRef} audio={exit} />
             <UserCount>Online: {userCount}</UserCount>
-            <Messages>{messages.map((msg) => {
-                return <p key={msg}>{msg}</p>
-            })}</Messages>
+            <Messages ref={messagesContainerRef}>
+                {messages.map((msg) => (
+                    <p key={msg}>{msg}</p>
+                ))}
+                <div ref={messagesEndRef} />
+            </Messages>
             <InputContainer>
                 <MessageInput
                     placeholder="Digite sua mensagem..."
