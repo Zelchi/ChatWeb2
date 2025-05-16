@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
     "build": "cd server && npm run build && cd .. && cd client && npm run build && cd ..",
     "start": "node app/server.js"
   },
