@@ -35,10 +35,10 @@ export class SocketHandler {
 
             socket.on('disconnect', () => {
                 const nickname = this.nicknames[socket.id];
-                delete this.nicknames[socket.id];
                 if (nickname) {
                     this.io.emit('cursor-disconnect', nickname);
                 }
+                delete this.nicknames[socket.id];
                 this.updateChat(socket);
             });
 
@@ -68,7 +68,6 @@ export class SocketHandler {
             socket.on('cursores', (cursor) => {
                 const nickname = this.nicknames[socket.id] || 'Unknown';
                 socket.broadcast.emit('cursores', { ...cursor, id: nickname });
-                console.log('cursores', { ...cursor, id: nickname });
             });
         });
     }

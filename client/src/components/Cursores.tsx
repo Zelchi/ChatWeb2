@@ -10,10 +10,9 @@ interface CursorData {
 
 interface CursoresProps {
     socket: any;
-    nickname: string; // Adicione o nickname aqui
+    nickname: string;
 }
 
-// Gera uma cor única com base no ID
 function getColorFromId(id: string): string {
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
@@ -33,14 +32,12 @@ export const Cursores = ({ socket, nickname }: CursoresProps) => {
 
     const [points, setPoints] = useState<Record<string, number[]>>({});
 
-    // Throttled envio
     const sendCursor = useRef(
         throttle((point: number[]) => {
             socket.emit('cursores', { x: point[0], y: point[1], id: nickname });
         }, THROTTLE)
     ).current;
 
-    // Envia posição do mouse local
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             sendCursor([e.clientX, e.clientY]);
@@ -49,7 +46,6 @@ export const Cursores = ({ socket, nickname }: CursoresProps) => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, [sendCursor]);
 
-    // Recebe posições remotas
     useEffect(() => {
         const handleRemoteCursor = (cursor: CursorData) => {
             if (cursor.id === nickname) return;
@@ -67,7 +63,6 @@ export const Cursores = ({ socket, nickname }: CursoresProps) => {
                 return copy;
             });
 
-            // Também limpe o PerfectCursor e ref
             if (cursorsRef.current[id]) {
                 cursorsRef.current[id].pc.dispose();
                 delete cursorsRef.current[id];
@@ -78,8 +73,6 @@ export const Cursores = ({ socket, nickname }: CursoresProps) => {
         return () => socket.off('cursor-disconnect', handleDisconnect);
     }, [socket]);
 
-
-    // Cria ou atualiza PerfectCursor para cada usuário
     useLayoutEffect(() => {
         Object.entries(points).forEach(([id, point]) => {
             if (!cursorsRef.current[id]) {
