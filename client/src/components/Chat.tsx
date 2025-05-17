@@ -1,9 +1,9 @@
 import styled, { keyframes } from 'styled-components';
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Sound } from './Sound';
-import join from '../../public/join.mp3'
-import send from '../../public/send.mp3'
-import exit from '../../public/exit.mp3'
+import join from '../../public/sounds/join.mp3'
+import send from '../../public/sounds/send.mp3'
+import exit from '../../public/sounds/exit.mp3'
 
 const slideUp = keyframes`
     from {

@@ -17,7 +17,7 @@ export class SocketHandler {
         const onlineUsers: string[] = Object.values(this.nicknames);
 
         socket.emit('history', this.messages);
-        
+
         this.io.emit('userList', onlineUsers);
         this.io.emit('userCount', onlineUsers.length);
     }
@@ -34,7 +34,11 @@ export class SocketHandler {
         this.io.on('connection', (socket) => {
 
             socket.on('disconnect', () => {
+                const nickname = this.nicknames[socket.id];
                 delete this.nicknames[socket.id];
+                if (nickname) {
+                    this.io.emit('cursor-disconnect', nickname);
+                }
                 this.updateChat(socket);
             });
 
@@ -59,6 +63,12 @@ export class SocketHandler {
                 const messageContent = `${nickname}: ${data}`;
                 this.messageRegister(messageContent);
                 this.io.emit('message', messageContent);
+            });
+
+            socket.on('cursores', (cursor) => {
+                const nickname = this.nicknames[socket.id] || 'Unknown';
+                socket.broadcast.emit('cursores', { ...cursor, id: nickname });
+                console.log('cursores', { ...cursor, id: nickname });
             });
         });
     }
