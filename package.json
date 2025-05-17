@@ -5,6 +5,7 @@
   "scripts": {
     "build": "cd server && npm run build && cd .. && cd client && npm run build && cd ..",
     "start": "node app/server.js",
+    "install" : "cd client && npm install && cd .. && cd server && npm install && cd ..",
     "fast": "npm run build && npm run start"
   },
   "keywords": [],
