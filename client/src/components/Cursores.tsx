@@ -23,7 +23,7 @@ function getColorFromId(id: string): string {
 }
 
 export const Cursores = ({ socket, nickname }: CursoresProps) => {
-    const THROTTLE = 30;
+    const THROTTLE = 100;
 
     const cursorsRef = useRef<Record<
         string,
@@ -34,7 +34,10 @@ export const Cursores = ({ socket, nickname }: CursoresProps) => {
 
     const sendCursor = useRef(
         throttle((point: number[]) => {
-            socket.emit('cursores', { x: point[0], y: point[1], id: nickname });
+            const [x, y] = point;
+            const percentX = x / window.innerWidth;
+            const percentY = y / window.innerHeight;
+            socket.emit('cursores', { x: percentX, y: percentY, id: nickname });
         }, THROTTLE)
     ).current;
 
@@ -49,7 +52,9 @@ export const Cursores = ({ socket, nickname }: CursoresProps) => {
     useEffect(() => {
         const handleRemoteCursor = (cursor: CursorData) => {
             if (cursor.id === nickname) return;
-            setPoints((prev) => ({ ...prev, [cursor.id]: [cursor.x, cursor.y] }));
+            const px = cursor.x * window.innerWidth;
+            const py = cursor.y * window.innerHeight;
+            setPoints((prev) => ({ ...prev, [cursor.id]: [px, py] }));
         };
         socket.on('cursores', handleRemoteCursor);
         return () => socket.off('cursores', handleRemoteCursor);
