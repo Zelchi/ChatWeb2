@@ -1,109 +1,267 @@
-import { useEffect, useRef, useState } from 'react';
-import SimplePeer from 'simple-peer';
+import styled, { keyframes } from 'styled-components';
+import { useEffect, useState, useRef } from 'react';
+import { Sound } from './Sound';
+import joinCall from '../../public/sounds/joincall.mp3';
+import leftCall from '../../public/sounds/leftcall.mp3';
+import mutedCall from '../../public/sounds/mutedcall.mp3';
+import Peer from 'simple-peer';
+
+const slideUp = keyframes`
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+`;
+
+const VoiceContainer = styled.div`
+    width: 400px;
+    height: 200px;
+    background-color: #2c2c2c;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+
+    animation: ${slideUp} 0.5s ease-in-out;
+`;
+
+const BoxButtons = styled.div`
+    width: 100%;
+    height: 50px;
+
+    display: flex;
+    flex-direction: row;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 20px;
+    padding: 10px;
+`;
+
+const UsersConnected = styled.div`
+    flex: 1;
+    background-color: #3c3c3c;
+    overflow: hidden;
+`;
+
+const ConnectButton = styled.button`
+    width: 50%;
+    height: 100%;
+
+    background: #6c6c6c;
+    border-radius: 5px;
+`;
+
+const MuteButton = styled.button`
+    width: 50%;
+    height: 100%;
+
+    background: #6c6c6c;
+    border-radius: 5px;
+`;
 
 interface VoiceChatProps {
     socket: any;
 }
 
-export const VoiceChat = ({ socket }: VoiceChatProps) => {
-    const [peers, setPeers] = useState<{ [userId: string]: SimplePeer.Instance }>({});
-    const peersRef = useRef<{ [userId: string]: SimplePeer.Instance }>({});
-    const myAudio = useRef<HTMLAudioElement>(null);
-    const remoteAudiosRef = useRef<{ [userId: string]: HTMLAudioElement }>({});
+interface PeerData {
+    peer: Peer.Instance;
+    userId: string;
+}
 
-    console.log(peers);
+interface VoiceUser {
+    id: string;
+    nickname: string;
+}
+
+export const VoiceChat = ({ socket }: VoiceChatProps) => {
+    const [isConnected, setIsConnected] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [userConnected, setUserConnected] = useState<VoiceUser[]>([]);
+    const peersRef = useRef<PeerData[]>([]);
+    const userStream = useRef<MediaStream | null>(null);
+    const [myId, setMyId] = useState<string | null>(null);
+    const [myNickname, setMyNickname] = useState<string | null>(null);
+
+    const joinSoundRef = useRef<{ playSound: () => void }>(null);
+    const leftSoundRef = useRef<{ playSound: () => void }>(null);
+    const mutedSoundRef = useRef<{ playSound: () => void }>(null);
 
     useEffect(() => {
-        let localStream: MediaStream;
+        if (!socket) return;
 
-        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-            localStream = stream;
+        socket.on('nicknameSuccess', () => {
+            setMyNickname(socket.nickname);
+        });
 
-            // Toca o próprio áudio (mutado)
-            if (myAudio.current) {
-                myAudio.current.srcObject = stream;
-            }
+        socket.on('connect', () => {
+            setMyId(socket.id);
+        });
 
-            socket.emit('join');
+        socket.on('voice-users', async (users: VoiceUser[]) => {
+            setUserConnected(users);
 
-            socket.on('user-joined', (userId: string) => {
-                const peer = new SimplePeer({ initiator: true, trickle: false, stream: localStream });
+            if (!isConnected || !userStream.current || !myNickname) return;
 
-                peer.on('signal', data => {
-                    socket.emit('signal', { to: userId, data });
-                });
-
-                peer.on('stream', remoteStream => {
-                    attachRemoteAudio(userId, remoteStream);
-                });
-
-                peersRef.current[userId] = peer;
-                setPeers({ ...peersRef.current });
-            });
-
-            socket.on('signal', ({ from, data }: { from: string; data: SimplePeer.SignalData }) => {
-                let peer = peersRef.current[from];
-
-                if (!peer) {
-                    peer = new SimplePeer({ initiator: false, trickle: false, stream: localStream });
-
-                    peer.on('signal', signal => {
-                        socket.emit('signal', { to: from, data: signal });
+            users.forEach((user) => {
+                if (
+                    user.nickname !== myNickname &&
+                    !peersRef.current.find((p) => p.userId === user.nickname)
+                ) {
+                    if (!userStream.current) {
+                        console.warn('Tentando criar Peer sem stream!');
+                        return;
+                    }
+                    const peer = new Peer({
+                        initiator: true,
+                        trickle: false,
+                        stream: userStream.current,
+                        config: {
+                            iceServers: [
+                                { urls: 'stun:stun.l.google.com:19302' }
+                            ]
+                        }
                     });
 
-                    peer.on('stream', remoteStream => {
-                        attachRemoteAudio(from, remoteStream);
+                    peer.on('signal', (signal) => {
+                        socket.emit('voice-signal', { to: user.nickname, signal });
                     });
 
-                    peersRef.current[from] = peer;
-                    setPeers({ ...peersRef.current });
+                    peer.on('stream', (remoteStream) => {
+                        console.log('Recebendo áudio de', user.id, remoteStream);
+                        const audio = document.createElement('audio');
+                        audio.srcObject = remoteStream;
+                        audio.autoplay = true;
+                        audio.muted = false;
+                        audio.volume = 1;
+                        audio.play();
+                        document.body.appendChild(audio);
+                    });
+
+                    peer.on('connect', () => {
+                        console.log('Peer conectado com', user.id);
+                    });
+
+                    const peerData = { peer, userId: user.id };
+                    peersRef.current.push(peerData);
                 }
-
-                peer.signal(data);
             });
 
-            socket.on('user-left', (userId: string) => {
-                const peer = peersRef.current[userId];
-                if (peer) {
+            peersRef.current.forEach(({ userId, peer }) => {
+                if (!users.some(user => user.nickname === userId)) {
                     peer.destroy();
-                    delete peersRef.current[userId];
-                    setPeers({ ...peersRef.current });
-                }
-
-                // Remove elemento <audio> remoto
-                const audio = remoteAudiosRef.current[userId];
-                if (audio) {
-                    audio.remove();
-                    delete remoteAudiosRef.current[userId];
+                    peersRef.current = peersRef.current.filter((p) => p.userId !== userId);
                 }
             });
         });
 
-        const attachRemoteAudio = (userId: string, stream: MediaStream) => {
-            const audio = document.createElement('audio');
-            audio.srcObject = stream;
-            audio.autoplay = true;
-            audio.controls = false;
-            document.body.appendChild(audio);
-            remoteAudiosRef.current[userId] = audio;
-        };
+        socket.on('voice-signal', ({ from, signal }: any) => {
+            if (!userStream.current || !myNickname) return;
+
+            let peerData = peersRef.current.find((p) => p.userId === from);
+            if (!peerData && from !== myNickname) {
+                if (!userStream.current) {
+                    console.warn('Tentando criar Peer sem stream (voice-signal)!');
+                    return;
+                }
+                const peer = new Peer({
+                    initiator: false,
+                    trickle: false,
+                    stream: userStream.current,
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' }
+                        ]
+                    }
+                });
+
+                peer.on('signal', (sig) => {
+                    socket.emit('voice-signal', { to: from, signal: sig });
+                });
+
+                peer.on('stream', (remoteStream) => {
+                    const audio = document.createElement('audio');
+                    audio.srcObject = remoteStream;
+                    audio.autoplay = true;
+                    audio.play();
+                    document.body.appendChild(audio);
+                });
+
+                const peerObj = { peer, userId: from };
+                peersRef.current.push(peerObj);
+                peer.signal(signal);
+            } else if (peerData) {
+                peerData.peer.signal(signal);
+            }
+        });
 
         return () => {
-            // Cleanup
-            Object.values(peersRef.current).forEach(peer => peer.destroy());
-            Object.values(remoteAudiosRef.current).forEach(audio => audio.remove());
-            peersRef.current = {};
-            remoteAudiosRef.current = {};
-
-            socket.off('user-joined');
-            socket.off('signal');
-            socket.off('user-left');
+            socket.off('voice-users');
+            socket.off('voice-signal');
+            socket.off('connect');
+            peersRef.current.forEach(({ peer }) => peer.destroy());
+            peersRef.current = [];
         };
-    }, [socket]);
+    }, [socket, isConnected, myNickname]);
+
+    const handleConnect = async () => {
+        if (isConnected) {
+            socket.emit('leave-voice');
+            leftSoundRef.current?.playSound();
+            setIsConnected(false);
+            peersRef.current.forEach(({ peer }) => peer.destroy());
+            peersRef.current = [];
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('Stream do microfone capturado:', stream);
+                userStream.current = stream;
+                socket.emit('join-voice');
+                joinSoundRef.current?.playSound();
+                setIsConnected(true);
+            } catch (err) {
+                alert('Não foi possível acessar o microfone.');
+            }
+        }
+    };
+
+    const handleMute = () => {
+        setIsMuted((prev) => !prev);
+        mutedSoundRef.current?.playSound();
+        socket.emit('mute', !isMuted);
+        if (userStream.current) {
+            userStream.current.getAudioTracks().forEach(track => {
+                track.enabled = isMuted;
+            });
+        }
+    };
 
     return (
-        <div>
-            <audio ref={myAudio} autoPlay muted />
-        </div>
+        <VoiceContainer>
+            <Sound ref={joinSoundRef} audio={joinCall} />
+            <Sound ref={leftSoundRef} audio={leftCall} />
+            <Sound ref={mutedSoundRef} audio={mutedCall} />
+            <UsersConnected>
+                <ul>
+                    {userConnected.map((user) => (
+                        <li key={user.id}>{user.nickname}</li>
+                    ))}
+                </ul>
+            </UsersConnected>
+            <BoxButtons>
+                <ConnectButton onClick={handleConnect}>
+                    {isConnected ? 'Desconectar' : 'Conectar'}
+                </ConnectButton>
+                <MuteButton onClick={handleMute}>
+                    {isMuted ? 'Desmutar' : 'Mutar'}
+                </MuteButton>
+            </BoxButtons>
+        </VoiceContainer>
     );
 };

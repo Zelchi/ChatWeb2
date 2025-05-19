@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 
 export class SocketHandler {
     private messages: string[] = [];
+    private voiceUsers: string[] = [];
     private nicknames: { [key: string]: string } = {};
 
     constructor(private io: Server) {
@@ -14,12 +15,17 @@ export class SocketHandler {
     }
 
     private updateChat(socket: Socket) {
-        const onlineUsers: string[] = Object.values(this.nicknames);
-
         socket.emit('history', this.messages);
+        this.io.emit('userCount', Object.values(this.nicknames).length);
+    }
 
-        this.io.emit('userList', onlineUsers);
-        this.io.emit('userCount', onlineUsers.length);
+    private updateVoice(socket: Socket) {
+        const users = this.voiceUsers.map(id => ({
+            id: this.nicknames[id] || id,
+            nickname: this.nicknames[id] || id
+        }));
+        this.io.emit('voice-users', users);
+        this.io.emit('userCountVoice', this.voiceUsers.length);
     }
 
     private verifyNickname(nickname: string): boolean {
@@ -39,6 +45,8 @@ export class SocketHandler {
                     this.io.emit('cursor-disconnect', nickname);
                 }
                 delete this.nicknames[socket.id];
+                this.voiceUsers = this.voiceUsers.filter((id) => id !== socket.id);
+                this.updateVoice(socket);
                 this.updateChat(socket);
             });
 
@@ -68,6 +76,27 @@ export class SocketHandler {
             socket.on('cursores', (cursor) => {
                 const nickname = this.nicknames[socket.id] || 'Unknown';
                 socket.broadcast.emit('cursores', { ...cursor, id: nickname });
+            });
+
+            socket.on('join-voice', () => {
+                if (!this.voiceUsers.includes(socket.id)) {
+                    this.voiceUsers.push(socket.id);
+                    this.updateVoice(socket);
+                }
+            });
+
+            socket.on('leave-voice', () => {
+                this.voiceUsers = this.voiceUsers.filter((id) => id !== socket.id);
+                this.updateVoice(socket);
+            });
+
+            socket.on('voice-signal', ({ to, signal }) => {
+                const targetId = Object.keys(this.nicknames).find(
+                    key => this.nicknames[key] === to
+                );
+                if (targetId) {
+                    socket.to(targetId).emit('voice-signal', { from: this.nicknames[socket.id], signal });
+                }
             });
         });
     }

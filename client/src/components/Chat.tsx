@@ -8,11 +8,11 @@ import exit from '../../public/sounds/exit.mp3'
 const slideUp = keyframes`
     from {
         opacity: 0;
-        transform: scale(0.95), translate(-50%, -50%);
+        transform: scale(0.95);
     }
     to {
         opacity: 1;
-        transform: scale(1), translate(-50%, -50%);
+        transform: scale(1);
     }
 `;
 
@@ -26,10 +26,6 @@ const ChatContainer = styled.div`
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     animation: ${slideUp} 0.5s ease-in-out;
 `;
 
