@@ -86,7 +86,6 @@ export const VoiceChat = ({ socket }: VoiceChatProps) => {
     const [userConnected, setUserConnected] = useState<VoiceUser[]>([]);
     const peersRef = useRef<PeerData[]>([]);
     const userStream = useRef<MediaStream | null>(null);
-    const [myId, setMyId] = useState<string | null>(null);
     const [myNickname, setMyNickname] = useState<string | null>(null);
 
     const joinSoundRef = useRef<{ playSound: () => void }>(null);
@@ -98,10 +97,6 @@ export const VoiceChat = ({ socket }: VoiceChatProps) => {
 
         socket.on('nicknameSuccess', () => {
             setMyNickname(socket.nickname);
-        });
-
-        socket.on('connect', () => {
-            setMyId(socket.id);
         });
 
         socket.on('voice-users', async (users: VoiceUser[]) => {
