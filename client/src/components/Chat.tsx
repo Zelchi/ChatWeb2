@@ -1,18 +1,18 @@
 import styled, { keyframes } from 'styled-components';
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { Sound } from './Sound';
-import join from '../../public/join.mp3'
-import send from '../../public/send.mp3'
-import exit from '../../public/exit.mp3'
+import join from '../../public/sounds/join.mp3'
+import send from '../../public/sounds/send.mp3'
+import exit from '../../public/sounds/exit.mp3'
 
 const slideUp = keyframes`
     from {
         opacity: 0;
-        transform: scale(0.95), translate(-50%, -50%);
+        transform: scale(0.95);
     }
     to {
         opacity: 1;
-        transform: scale(1), translate(-50%, -50%);
+        transform: scale(1);
     }
 `;
 
@@ -26,10 +26,6 @@ const ChatContainer = styled.div`
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     animation: ${slideUp} 0.5s ease-in-out;
 `;
 

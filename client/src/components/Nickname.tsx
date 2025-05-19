@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
+import { Sound } from './Sound';
+import errorSound from '../../public/sounds/error.mp3'
 
 export const slideUp = keyframes`
     from {
@@ -27,6 +29,13 @@ export const slideOut = keyframes`
     }
 `;
 
+const shake = keyframes`
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-8px); }
+    40%, 60% { transform: translateX(8px); }
+`;
+
 const Container = styled.div<{ animateOut: boolean }>`
     width: 400px;
     background-color: #2c2c2c;
@@ -48,15 +57,20 @@ const Container = styled.div<{ animateOut: boolean }>`
             : css`${slideUp} 1s ease-in-out`};
 `
 
-const Caixa = styled.div`
+const Caixa = styled.div<{ shakeError?: boolean }>`
     width: 100%;
     height: 50px;
     flex-direction: row;
     display: flex;
     gap: 10px;
+    ${({ shakeError }) =>
+        shakeError &&
+        css`
+            animation: ${shake} 0.4s;
+        `}
 `
 
-const Input = styled.input`
+const Input = styled.input<{ shakeError?: boolean }>`
     width: 100%;
     height: 40px;
     padding: 10px;
@@ -64,6 +78,12 @@ const Input = styled.input`
     border-radius: 5px;
     background-color: #444;
     color: #fff;
+    ${({ shakeError }) =>
+        shakeError &&
+        css`
+            animation: ${shake} 0.4s;
+            border: 1.5px solid #ff4d4f;
+        `}
 `
 
 const Button = styled.button`
@@ -89,19 +109,24 @@ const Button = styled.button`
 
 export const Nickname = ({ setLogin, setNick, nickname, socket }: any) => {
     const [animateOut, setAnimateOut] = useState(false);
+    const [nicknameError, setNicknameError] = useState(false);
+
+    const errorSoundRef = useRef<{ playSound: () => void }>(null);
+
 
     const handleLogin = (e: any) => {
         if (e.key !== 'Enter' && e.type !== 'click') return
 
         socket.emit('nickname', nickname);
 
-        socket.once('nicknameError', (error: string) => {
-            console.log(error);
+        socket.once('nicknameError', () => {
+            errorSoundRef.current?.playSound();
+            setNicknameError(true);
+            setTimeout(() => setNicknameError(false), 500);
             return;
         });
 
-        socket.once('nicknameSuccess', (message: string) => {
-            console.log(message);
+        socket.once('nicknameSuccess', () => {
             setAnimateOut(true);
             setTimeout(() => {
                 setNick(nickname);
@@ -112,8 +137,9 @@ export const Nickname = ({ setLogin, setNick, nickname, socket }: any) => {
 
     return (
         <Container animateOut={animateOut}>
+            <Sound ref={errorSoundRef} audio={errorSound} />
             <h1>Escolha seu nickname</h1>
-            <Caixa>
+            <Caixa shakeError={nicknameError}>
                 <Input
                     type="text"
                     placeholder="Nickname"
