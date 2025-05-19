@@ -23,7 +23,7 @@ function getColorFromId(id: string): string {
 }
 
 export const Cursores = ({ socket, nickname }: CursoresProps) => {
-    const THROTTLE = 200;
+    const THROTTLE = 30;
 
     const cursorsRef = useRef<Record<
         string,

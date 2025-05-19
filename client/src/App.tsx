@@ -5,7 +5,6 @@ import { Chat } from './components/Chat'
 import { useState } from 'react'
 import { io } from 'socket.io-client'
 import { Cursores } from './components/Cursores'
-// import { VoiceChat } from './components/Voice'
 
 const socket = io();
 
@@ -33,7 +32,6 @@ const App = () => {
     <ChatWeb>
       {!login && <Nickname setLogin={setLogin} setNick={setNick} nickname={nickname} socket={socket} />}
       {login && <Chat socket={socket} />}
-      {/* {login && <VoiceChat socket={socket} />} */}
       {login && <Cursores socket={socket} nickname={nickname} />}
     </ChatWeb>
   )
