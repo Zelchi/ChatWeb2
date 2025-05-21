@@ -36,7 +36,7 @@ Simples, elegante e pronto para escalar. Bora conhecer? Ò.Ó
 ### 1. Clone o repositório
 ```bash
 git clone https://github.com/seu-usuario/chatweb2.git
-cd chatweb2
+cd WebSocket-React
 
 npm run install
 npm run fast
